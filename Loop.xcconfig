@@ -9,9 +9,10 @@
 // This is automatically disambiguated by development team, but you may choose to change this to
 // support running multiple apps simultaneously.
 MAIN_APP_BUNDLE_IDENTIFIER = com.${DEVELOPMENT_TEAM}.loopkit
-MAIN_APP_DISPLAY_NAME = FreeAPS
+MAIN_APP_DISPLAY_NAME = Loop
 
-LOOP_MARKETING_VERSION = 2.0
+LOOP_BUILD_VERSION = 301119a
+LOOP_MARKETING_VERSION = ${LOOP_BUILD_VERSION}-FREEAPS
 
 APPICON_NAME = AppIcon
 
