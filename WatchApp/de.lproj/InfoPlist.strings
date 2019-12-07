@@ -1,5 +1,5 @@
 /* (No Comment) */
-"CFBundleDisplayName" = "Loop";
+"CFBundleDisplayName" = "$(MAIN_APP_PRODUCT_NAME)";
 
 /* (No Comment) */
 "CFBundleName" = "$(PRODUCT_NAME)";
