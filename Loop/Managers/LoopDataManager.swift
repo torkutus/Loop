@@ -72,7 +72,7 @@ final class LoopDataManager {
             carbRatioSchedule: carbRatioSchedule,
             insulinSensitivitySchedule: insulinSensitivitySchedule,
             overrideHistory: overrideHistory,
-            carbAbsorptionModel: .adaptiveRateNonlinear
+            carbAbsorptionModel: settings.carbAbsorptionModel
         )
 
         doseStore = DoseStore(
@@ -1077,6 +1077,16 @@ extension LoopDataManager {
             completion(false, nil)
             return
         }
+
+        if settings.microbolusSettings.disableByOverride,
+            let unit = glucoseStore.preferredUnit,
+            let overrideLowerBound = settings.scheduleOverride?.settings.targetRange?.lowerBound,
+            overrideLowerBound >= HKQuantity(unit: unit, doubleValue: settings.microbolusSettings.overrideLowerBound) {
+            logger.debug("Cancel microbolus by temporary override.")
+            completion(false, nil)
+            return
+        }
+
 
         guard let bolusState = delegate?.bolusState, case .none = bolusState else {
             logger.debug("Already bolusing. Cancel microbolus calculation.")
