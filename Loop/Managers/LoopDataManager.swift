@@ -1080,7 +1080,9 @@ extension LoopDataManager {
 
         if settings.microbolusSettings.disableByOverride,
             let unit = glucoseStore.preferredUnit,
-            let overrideLowerBound = settings.scheduleOverride?.settings.targetRange?.lowerBound,
+            let override = settings.scheduleOverride,
+            !override.hasFinished(),
+            let overrideLowerBound = override.settings.targetRange?.lowerBound,
             overrideLowerBound >= HKQuantity(unit: unit, doubleValue: settings.microbolusSettings.overrideLowerBound) {
             logger.debug("Cancel microbolus by temporary override.")
             completion(false, nil)
@@ -1190,7 +1192,7 @@ extension LoopDataManager {
             self.delegate?.loopDataManager(self, roundBolusVolume: units) ?? units
         }
 
-        let microBolus = volumeRounder(min(insulinReq / 2, maxMicroBolus))
+        let microBolus = volumeRounder(min(insulinReq * settings.microbolusSettings.partialApplication, maxMicroBolus))
         guard microBolus > 0 else {
             logger.debug("No microbolus needed.")
             completion(false, nil)
