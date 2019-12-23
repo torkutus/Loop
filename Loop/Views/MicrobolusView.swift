@@ -127,7 +127,6 @@ struct MicrobolusView: View {
     }
 
     @ObservedObject var viewModel: ViewModel
-    @ObservedObject private var keyboard = KeyboardResponder()
 
     init(viewModel: ViewModel) {
         self.viewModel = viewModel
@@ -135,100 +134,121 @@ struct MicrobolusView: View {
 
     var body: some View {
         Form {
-            Section {
-                HStack {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.orange)
-                        .padding(.trailing)
+            self.topSection
+            self.withCobSection
+            self.withoutCobSection
+            self.partialApplicationSection
+            self.safeModeSection
+            self.temporaryOverridesSection
+            self.otherOptionsSection
+        }
+        .navigationBarTitle("Microboluses")
+        .modifier(AdaptsToSoftwareKeyboard())
+    }
 
-                    Text("Caution! Microboluses have potential to reduce the safety effects of other mitigations like max temp basal rate. Please be careful!\nThe actual size of a microbolus is always limited to the partial application of recommended bolus.")
-                        .font(.caption)
-                }
+    private var topSection: some View {
+        Section {
+            HStack {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(.orange)
+                    .padding(.trailing)
 
-            }
-            Section(footer:
-                Text("This is the maximum minutes of basal that can be delivered as a single microbolus with uncovered COB. This allows you to make microboluses behave more aggressively. It is recommended that this value is set to start at 30, in line with default, and if you choose to increase this value, do so in no more than 15 minute increments, keeping a close eye on the effects of the changes.")
-            ) {
-                Toggle (isOn: $viewModel.microbolusesWithCOB) {
-                    Text("Enable With Carbs")
-                }
-
-                Picker(selection: $viewModel.pickerWithCOBIndex, label: Text("Maximum Size")) {
-                    ForEach(0 ..< viewModel.values.count) { index in
-                        Text("\(self.viewModel.values[index])").tag(index)
-                    }
-                }
-            }
-
-            Section(footer:
-                Text("This is the maximum minutes of basal that can be delivered as a single microbolus without COB.")
-            ) {
-                Toggle (isOn: $viewModel.microbolusesWithoutCOB) {
-                    Text("Enable Without Carbs")
-                }
-                Picker(selection: $viewModel.pickerWithoutCOBIndex, label: Text("Maximum Size")) {
-                    ForEach(0 ..< viewModel.values.count) { index in
-                        Text("\(self.viewModel.values[index])").tag(index)
-                    }
-                }
-            }
-
-            Section(footer:
-                Text("What part of the recommended bolus will be applied automatically.")
-            ) {
-                Picker(selection: $viewModel.partialApplicationIndex, label: Text("Partial Application")) {
-                    ForEach(0 ..< viewModel.partialApplicationValues.count) { index in
-                        Text(String(format: "%.0f %%", self.viewModel.partialApplicationValues[index] * 100)).tag(index)
-                    }
-                }
-            }
-
-            Section(header: Text("Safe Mode").font(.headline), footer:
-                Text("• If Enabled and predicted glucose in 15 minutes is lower than current glucose, microboluses are not allowed.\n• If Limited and the predicted glucose in 15 minutes is lower than current glucose, the maximum microbolus size is limited to 30 basal minutes.\n• If Disabled, there are no restrictions.")
-            ) {
-                Picker(selection: $viewModel.safeMode, label: Text("Safe Mode")) {
-                    ForEach(Microbolus.SafeMode.allCases, id: \.self) { value in
-                        Text("\(value.displayName)").tag(value)
-                    }
-                }
-                .pickerStyle(SegmentedPickerStyle())
-            }
-
-            Section(header: Text("Temporary overrides").font(.headline)) {
-                Toggle (isOn: $viewModel.disableByOverride) {
-                    Text("Disable MB by enabling temporary override")
-                }
-
-                VStack(alignment: .leading) {
-                    Text("If the override's target range starts at the given value or more").font(.caption)
-                    HStack {
-                        TextField("0", text: $viewModel.lowerBound, onEditingChanged: { changed in
-
-                        }) { self.dismissKeyboard() }
-                        .keyboardType(.decimalPad)
-                        .multilineTextAlignment(.trailing)
-
-                        Text(viewModel.unit.localizedShortUnitString)
-                    }
-                }
-            }
-
-            Section(header: Text("Other Options").font(.headline), footer:
-                Text("This is the minimum microbolus size in units that will be delivered. Only if the microbolus calculated is equal to or greater than this number of units will a bolus be delivered.")
-            ) {
-                Toggle (isOn: $viewModel.openBolusScreen) {
-                    Text("Open Bolus screen after Carbs")
-                }
-
-                Picker(selection: $viewModel.pickerMinimumBolusSizeIndex, label: Text("Minimum Bolus Size")) {
-                    ForEach(0 ..< viewModel.minimumBolusSizeValues.count) { index in Text(String(format: "%.2f U", self.viewModel.minimumBolusSizeValues[index])).tag(index)
-                    }
-                }
+                Text("Caution! Microboluses have potential to reduce the safety effects of other mitigations like max temp basal rate. Please be careful!\nThe actual size of a microbolus is always limited to the partial application of recommended bolus.")
+                    .font(.caption)
             }
 
         }
-        .navigationBarTitle("Microboluses")
-        .padding(.bottom, keyboard.currentHeight)
+    }
+
+    private var withCobSection: some View {
+        Section(footer:
+            Text("This is the maximum minutes of basal that can be delivered as a single microbolus with uncovered COB. This allows you to make microboluses behave more aggressively. It is recommended that this value is set to start at 30, in line with default, and if you choose to increase this value, do so in no more than 15 minute increments, keeping a close eye on the effects of the changes.")
+        ) {
+            Toggle (isOn: $viewModel.microbolusesWithCOB) {
+                Text("Enable With Carbs")
+            }
+
+            Picker(selection: $viewModel.pickerWithCOBIndex, label: Text("Maximum Size")) {
+                ForEach(0 ..< viewModel.values.count) { index in
+                    Text("\(self.viewModel.values[index])").tag(index)
+                }
+            }
+        }
+    }
+
+    private var withoutCobSection: some View {
+        Section(footer:
+            Text("This is the maximum minutes of basal that can be delivered as a single microbolus without COB.")
+        ) {
+            Toggle (isOn: $viewModel.microbolusesWithoutCOB) {
+                Text("Enable Without Carbs")
+            }
+            Picker(selection: $viewModel.pickerWithoutCOBIndex, label: Text("Maximum Size")) {
+                ForEach(0 ..< viewModel.values.count) { index in
+                    Text("\(self.viewModel.values[index])").tag(index)
+                }
+            }
+        }
+    }
+
+    private var partialApplicationSection: some View {
+        Section(footer:
+            Text("What part of the recommended bolus will be applied automatically.")
+        ) {
+            Picker(selection: $viewModel.partialApplicationIndex, label: Text("Partial Application")) {
+                ForEach(0 ..< viewModel.partialApplicationValues.count) { index in
+                    Text(String(format: "%.0f %%", self.viewModel.partialApplicationValues[index] * 100)).tag(index)
+                }
+            }
+        }
+    }
+
+    private var safeModeSection: some View {
+        Section(header: Text("Safe Mode").font(.headline), footer:
+            Text("• If Enabled and predicted glucose in 15 minutes is lower than current glucose, microboluses are not allowed.\n• If Limited and the predicted glucose in 15 minutes is lower than current glucose, the maximum microbolus size is limited to 30 basal minutes.\n• If Disabled, there are no restrictions.")
+        ) {
+            Picker(selection: $viewModel.safeMode, label: Text("Safe Mode")) {
+                ForEach(Microbolus.SafeMode.allCases, id: \.self) { value in
+                    Text("\(value.displayName)").tag(value)
+                }
+            }
+            .pickerStyle(SegmentedPickerStyle())
+        }
+    }
+
+
+    private var temporaryOverridesSection: some View {
+        Section(header: Text("Temporary overrides").font(.headline)) {
+            Toggle (isOn: $viewModel.disableByOverride) {
+                Text("Disable MB by enabling temporary override")
+            }
+
+            VStack(alignment: .leading) {
+                Text("If the override's target range starts at the given value or more").font(.caption)
+                HStack {
+                    TextField("0", text: $viewModel.lowerBound)
+                    .keyboardType(.decimalPad)
+                    .multilineTextAlignment(.trailing)
+
+                    Text(viewModel.unit.localizedShortUnitString)
+                }
+            }
+        }
+    }
+
+    private var otherOptionsSection: some View {
+        Section(header: Text("Other Options").font(.headline), footer:
+            Text("This is the minimum microbolus size in units that will be delivered. Only if the microbolus calculated is equal to or greater than this number of units will a bolus be delivered.")
+        ) {
+            Toggle (isOn: $viewModel.openBolusScreen) {
+                Text("Open Bolus screen after Carbs")
+            }
+
+            Picker(selection: $viewModel.pickerMinimumBolusSizeIndex, label: Text("Minimum Bolus Size")) {
+                ForEach(0 ..< viewModel.minimumBolusSizeValues.count) { index in Text(String(format: "%.2f U", self.viewModel.minimumBolusSizeValues[index])).tag(index)
+                }
+            }
+        }
     }
 }
 
@@ -253,45 +273,39 @@ struct MicrobolusView_Previews: PreviewProvider {
             )
         )
             .environment(\.colorScheme, .dark)
-            .previewLayout(.fixed(width: 375, height: 1000))
+            .previewLayout(.fixed(width: 375, height: 1300))
     }
 }
 
 // MARK: - Helpers
 
-extension UIApplication {
-    func endEditing() {
-        sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-    }
-}
+struct AdaptsToSoftwareKeyboard: ViewModifier {
+    @State var currentHeight: CGFloat = 0
 
-extension View {
-    func dismissKeyboard() {
-        UIApplication.shared.endEditing()
-    }
-}
-
-final class KeyboardResponder: ObservableObject {
-    private var notificationCenter: NotificationCenter
-    @Published private(set) var currentHeight: CGFloat = 0
-
-    init(center: NotificationCenter = .default) {
-        notificationCenter = center
-        notificationCenter.addObserver(self, selector: #selector(keyBoardWillShow(notification:)), name: UIResponder.keyboardWillShowNotification, object: nil)
-        notificationCenter.addObserver(self, selector: #selector(keyBoardWillHide(notification:)), name: UIResponder.keyboardWillHideNotification, object: nil)
+    func body(content: Content) -> some View {
+        content
+            .padding(.bottom, currentHeight).animation(.easeOut(duration: 0.25))
+            .edgesIgnoringSafeArea(currentHeight == 0 ? Edge.Set() : .bottom)
+            .onAppear(perform: subscribeToKeyboardChanges)
     }
 
-    deinit {
-        notificationCenter.removeObserver(self)
-    }
+    private let keyboardHeightOnOpening = NotificationCenter.default
+        .publisher(for: UIResponder.keyboardWillShowNotification)
+        .map { $0.userInfo![UIResponder.keyboardFrameEndUserInfoKey] as! CGRect }
+        .map { $0.height }
 
-    @objc func keyBoardWillShow(notification: Notification) {
-        if let keyboardSize = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
-            currentHeight = keyboardSize.height
+
+    private let keyboardHeightOnHiding = NotificationCenter.default
+        .publisher(for: UIResponder.keyboardWillHideNotification)
+        .map {_ in return CGFloat(0) }
+
+    private func subscribeToKeyboardChanges() {
+        _ = Publishers.Merge(keyboardHeightOnOpening, keyboardHeightOnHiding)
+            .subscribe(on: DispatchQueue.main)
+            .sink { height in
+                if self.currentHeight == 0 || height == 0 {
+                    self.currentHeight = height
+                }
         }
-    }
-
-    @objc func keyBoardWillHide(notification: Notification) {
-        currentHeight = 0
     }
 }
