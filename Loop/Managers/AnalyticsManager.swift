@@ -5,7 +5,6 @@
 //  Created by Nathan Racklyeft on 4/28/16.
 //  Copyright © 2016 Nathan Racklyeft. All rights reserved.
 //
-
 import Foundation
 import Amplitude
 import LoopKit
@@ -33,7 +32,6 @@ final class AnalyticsManager: IdentifiableClass {
     static let shared = AnalyticsManager()
 
     // MARK: - Helpers
-
     private var logger: CategoryLogger?
 
     private func logEvent(_ name: String, withProperties properties: [AnyHashable: Any]? = nil, outOfSession: Bool = false) {
@@ -42,13 +40,11 @@ final class AnalyticsManager: IdentifiableClass {
     }
 
     // MARK: - UIApplicationDelegate
-
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [AnyHashable: Any]?) {
         logEvent("App Launch")
     }
 
     // MARK: - Screens
-
     func didDisplayBolusScreen() {
         logEvent("Bolus Screen")
     }
@@ -62,7 +58,6 @@ final class AnalyticsManager: IdentifiableClass {
     }
 
     // MARK: - Config Events
-
     func transmitterTimeDidDrift(_ drift: TimeInterval) {
         logEvent("Transmitter time change", withProperties: ["value" : drift], outOfSession: true)
     }
@@ -115,9 +110,9 @@ final class AnalyticsManager: IdentifiableClass {
         if newValue.dosingEnabled != oldValue.dosingEnabled {
             logEvent("Closed loop enabled change")
         }
-
-        if newValue.retrospectiveCorrectionEnabled != oldValue.retrospectiveCorrectionEnabled {
-            logEvent("Retrospective correction enabled change")
+        
+        if newValue.integralRetrospectiveCorrectionEnabled != oldValue.integralRetrospectiveCorrectionEnabled {
+            logEvent("Integral retrospective correction enabled change")
         }
 
         if newValue.glucoseTargetRangeSchedule != oldValue.glucoseTargetRangeSchedule {
@@ -133,7 +128,6 @@ final class AnalyticsManager: IdentifiableClass {
 
 
     // MARK: - Loop Events
-
     func didAddCarbsFromWatch() {
         logEvent("Carb entry created", withProperties: ["source" : "Watch"], outOfSession: true)
     }
